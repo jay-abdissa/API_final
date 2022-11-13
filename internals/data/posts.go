@@ -35,7 +35,7 @@ type ForumModel struct {
 // Insert() allows us  to create a new Forum
 func (m ForumModel) Insert(forum *Forum) error {
 	query := `
-		INSERT INTO forum (title, content)
+		INSERT INTO posts (title, content)
 		VALUES ($1, $2)
 		RETURNING id, created_at, version
 	`
@@ -59,7 +59,7 @@ func (m ForumModel) Get(id int64) (*Forum, error) {
 	// Create the query
 	query := `
 		SELECT id, created_at, title, content, version
-		FROM forum
+		FROM posts
 		WHERE id = $1
 	`
 	// Declare a Forum variable to hold the returned data
@@ -97,7 +97,7 @@ func (m ForumModel) Get(id int64) (*Forum, error) {
 func (m ForumModel) Update(forum *Forum) error {
 	// Create a query
 	query := `
-		UPDATE forum
+		UPDATE posts
 		SET title = $1, content = $2, version = version + 1
 		WHERE id = $3
 		AND version = $4
@@ -135,7 +135,7 @@ func (m ForumModel) Delete(id int64) error {
 	}
 	// Create the delete query
 	query := `
-		DELETE FROM forum
+		DELETE FROM posts
 		WHERE id = $1
 	`
 
@@ -169,7 +169,7 @@ func (m ForumModel) GetAll(title string, content string, filters Filters) ([]*Fo
 
 	query := fmt.Sprintf(`
 		SELECT COUNT(*) OVER(), id, created_at, title, content, version
-		FROM forum
+		FROM posts
 		WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
 		AND (to_tsvector('simple', content) @@ plainto_tsquery('simple', $2) OR $2 = '')
 		ORDER BY %s %s, id ASC

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"forum.castillojadah.net/internal/data"
-	"forum.castillojadah.net/internal/validator"
+	"forum.castillojadah.net/internals/data"
+	"forum.castillojadah.net/internals/validator"
 )
 
 // createForumHandler for the "POST /v1/forum" endpoint
@@ -187,7 +187,7 @@ func (app *application) deleteForumHandler(w http.ResponseWriter, r *http.Reques
 func (app *application) listForumHandler(w http.ResponseWriter, r *http.Request) {
 	// Create an input struct to hold our query parameters
 	var input struct {
-		Name     string
+		Title     string
 		Content string
 		data.Filters
 	}

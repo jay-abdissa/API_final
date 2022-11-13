@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
-	"forum.castillojadah.net/internal/validator"
+	"forum.castillojadah.net/internals/validator"
 )
 
 // Define a new type named envelope
