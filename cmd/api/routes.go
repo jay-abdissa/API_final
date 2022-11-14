@@ -5,7 +5,7 @@ import	(
 	"net/http"
 	"github.com/julienschmidt/httprouter"
 )
-func (app *application) routes() *httprouter.Router{
+func (app *application) routes() http.Handler{
 	//Create new httprouter instance
 	router := httprouter.New()
 	router.NotFound = http.HandlerFunc(app.notFoundResponse)
@@ -16,5 +16,10 @@ func (app *application) routes() *httprouter.Router{
 	router.HandlerFunc(http.MethodGet, "/v1/forum/:id", app.showForumHandler)
 	router.HandlerFunc(http.MethodPatch, "/v1/forum/:id", app.updateForumHandler)
 	router.HandlerFunc(http.MethodDelete, "/v1/forum/:id", app.deleteForumHandler)
-	return router
+	router.HandlerFunc(http.MethodPost, "/v1/comment", app.createCommentHandler)
+	router.HandlerFunc(http.MethodGet, "/v1/comment", app.listCommentHandler)
+	router.HandlerFunc(http.MethodGet, "/v1/comment/:id", app.showCommentHandler)
+	router.HandlerFunc(http.MethodPatch, "/v1/comment/:id", app.updateCommentHandler)
+	router.HandlerFunc(http.MethodDelete, "/v1/comment/:id", app.deleteCommentHandler)
+	return app.recoverPanic(router)
 }

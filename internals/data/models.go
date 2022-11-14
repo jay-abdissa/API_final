@@ -15,11 +15,13 @@ var (
 // a wrapper for our data models
 type Models struct {
 	Forums ForumModel
+	Comments CommentModel
 }
 
 //NewModels allows us to create a new model
 func NewModels(db *sql.DB) Models {
 	return Models {
 		Forums: ForumModel{DB: db},
+		Comments: CommentModel{DB: db},
 	}
 }
