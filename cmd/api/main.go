@@ -5,11 +5,9 @@ import	(
 	"context"
 	"database/sql"
 	"flag"
-	"fmt"
-	"log"
-	"net/http"
 	"os"
 	"time"
+	
 	"forum.castillojadah.net/internals/data"
 	"forum.castillojadah.net/internals/jsonlog"
 	_ "github.com/lib/pq"
@@ -27,6 +25,11 @@ type config struct {
 		maxIdleConns int
 		maxIdleTime string
 	}
+	limiter struct {
+		rps     float64 // requests/second
+		burst   int
+		enabled bool
+	}
 }
 //Dependency Injection
 type application struct {
@@ -43,6 +46,11 @@ func main() {
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
+	// These are flags for the rate limiter
+	flag.Float64Var(&cfg.limiter.rps, "limiter-rps", 2, "Rate limiter maximum requests per second")
+	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
+	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
+
 	flag.Parse()
 	// Create a logger
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
@@ -60,26 +68,12 @@ func main() {
 		logger: logger,
 		models: data.NewModels(db),
  	} 
-	//Create new servemux
-	mux := http.NewServeMux()
-	mux.HandleFunc("/v1/healthcheck", app.healthcheckHandler)
-	//Create our HTTP server
-	srv := &http.Server{
-		Addr:			fmt.Sprintf(":%d", cfg.port),
-		Handler: 		app.routes(),
-		ErrorLog:		log.New(logger, "", 0),
-		IdleTimeout:	time.Minute,
-		ReadTimeout:	10 * time.Second,
-		WriteTimeout:	30 * time.Second,
+	// Call app.serve() to start the server
+	err = app.serve()
+	if err != nil {
+		logger.PrintFatal(err, nil)
 	}
-	//Start our Server
-	logger.PrintInfo("starting server", map[string]string{
-		"addr": srv.Addr,
-		"env": cfg.env,
-	})
-	err = srv.ListenAndServe()
-	logger.PrintFatal(err, nil)
-}
+}	
 //The openDB() function returns a *sql.db connection pool
 func openDB(cfg config) (*sql.DB, error){
 	db, err := sql.Open("postgres", cfg.db.dsn)

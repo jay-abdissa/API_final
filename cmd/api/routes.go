@@ -21,5 +21,5 @@ func (app *application) routes() http.Handler{
 	router.HandlerFunc(http.MethodGet, "/v1/comment/:id", app.showCommentHandler)
 	router.HandlerFunc(http.MethodPatch, "/v1/comment/:id", app.updateCommentHandler)
 	router.HandlerFunc(http.MethodDelete, "/v1/comment/:id", app.deleteCommentHandler)
-	return app.recoverPanic(router)
+	return app.recoverPanic(app.rateLimit(router))
 }
