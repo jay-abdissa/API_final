@@ -55,6 +55,12 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		}
 		return
 	}
+	// Add permissions for the newly inserted user
+	err = app.models.Permissions.AddForUser(user.ID, "schools:read")
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 	// Generate a token for the newly-created user
 	token, err := app.models.Tokens.New(user.ID, 1*24*time.Hour, data.ScopeActivation)
 	if err != nil {

@@ -1,0 +1,17 @@
+INSERT INTO users_permissions
+SELECT id, (SELECT id FROM permissions WHERE code = 'forums:read') FROM users;
+
+INSERT INTO users_permissions(user_id, permission_id)
+VALUES(
+(SELECT id FROM users WHERE email = 'test@gmail.com'),
+(SELECT id FROM permissions WHERE code = 'forums:write')
+);
+
+SELECT email, array_agg(permissions.code) AS permissions
+FROM permissions
+INNER JOIN users_permissions
+ON users_permissions.permission_id = permissions.id
+INNER JOIN users
+ON users_permissions.user_id = users.id
+WHERE users.activated = true
+GROUP BY email;
